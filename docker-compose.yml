@@ -1,0 +1,55 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: test_project_fastapi:${TEST_PROJECT_FASTAPI_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TEST_PROJECT_FASTAPI_HOST: 0.0.0.0
+      TEST_PROJECT_FASTAPI_DB_HOST: test_project_fastapi-db
+      TEST_PROJECT_FASTAPI_DB_PORT: 5432
+      TEST_PROJECT_FASTAPI_DB_USER: test_project_fastapi
+      TEST_PROJECT_FASTAPI_DB_PASS: test_project_fastapi
+      TEST_PROJECT_FASTAPI_DB_BASE: test_project_fastapi
+
+  db:
+    image: postgres:16.3-bullseye
+    hostname: test_project_fastapi-db
+    environment:
+      POSTGRES_PASSWORD: "test_project_fastapi"
+      POSTGRES_USER: "test_project_fastapi"
+      POSTGRES_DB: "test_project_fastapi"
+    volumes:
+      - test_project_fastapi-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U test_project_fastapi
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: test_project_fastapi:${TEST_PROJECT_FASTAPI_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      TEST_PROJECT_FASTAPI_DB_HOST: test_project_fastapi-db
+      TEST_PROJECT_FASTAPI_DB_PORT: 5432
+      TEST_PROJECT_FASTAPI_DB_USER: test_project_fastapi
+      TEST_PROJECT_FASTAPI_DB_PASS: test_project_fastapi
+      TEST_PROJECT_FASTAPI_DB_BASE: test_project_fastapi
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+volumes:
+  test_project_fastapi-db-data:
+    name: test_project_fastapi-db-data
