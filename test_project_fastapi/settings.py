@@ -2,7 +2,7 @@ import os
 import enum
 from pathlib import Path
 from tempfile import gettempdir
-from typing import List, Optional
+from typing import Iterable
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -48,6 +48,25 @@ class Settings(BaseSettings):
     db_pass: str = "test_project_fastapi"
     db_base: str = "admin"
     db_echo: bool = False
+
+    # Variables for count of active performers
+    performers: int = 2
+
+    # Variable for time offset
+    time_offset: int = 3
+
+    # Variables for room numbers
+    first_room_number: int = 1
+    last_room_number: int = 200
+
+    @property
+    def available_room_numbers(self) -> Iterable[int]:
+        """
+        Generate range of ints of available room numbers.
+
+        :return: Range of ints of available room numbers.
+        """
+        return range(self.first_room_number, self.last_room_number + 1)
 
     @property
     def db_url(self) -> URL:
