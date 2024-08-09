@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List, Union, Optional
 
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
@@ -44,7 +44,7 @@ class OrderDAO:
         self,
         offset: int,
         limit: int | None = None,
-        date: datetime.date | None = None,
+        date: Union[datetime.date, None] = None,
     ) -> List[Order]:
         """
         Get all orders models with date filtering and limit/offset pagination.
